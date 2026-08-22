@@ -13,10 +13,12 @@ Target Market: **Indian Coaching and Training Institutes**
 - Implement centralized frontend API service with live status indicator (`Connected` / `Unavailable`).
 - Implement global exception handling, externalized environment config (`.env.example`), and zero-secret Git tracking.
 
-### Phase 2 — Authentication & Multi-Tenancy
-- Institute User registration & login (JWT authentication).
-- Multi-tenant organization isolation for coaching institutes.
-- Role-based access control (Institute Admin, Counselor, Staff).
+### Phase 2 — Authentication & Multi-Tenancy [COMPLETED]
+- Institute user registration & login (HttpOnly cookie JWT authentication).
+- Multi-tenant organization isolation with strict tenant IDOR controls.
+- Role-based access control (ADMIN, COUNSELOR, STAFF).
+- Explicit Spring Security CSRF protection for cookie-based SPA (`CookieCsrfTokenRepository`, `SpaCsrfTokenRequestHandler`).
+- Empirical BCrypt benchmarking (strength 10 calibration) and isolated test endpoints.
 
 ### Phase 3 — Lead Capture & Management
 - Enquiries & Leads DB schema (Lead, Course, Campus, Source).
