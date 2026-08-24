@@ -115,7 +115,7 @@ let mockLeads: Lead[] = [
     courseId: 'course-1',
     courseName: 'Full Stack Java & Spring Boot Masterclass',
     status: 'QUALIFIED',
-    priority: 'HOT',
+    priority: 'HIGH',
     source: 'META_ADS',
     assignedToId: 'counselor-1',
     assignedToName: 'Pooja Sharma',
@@ -151,8 +151,8 @@ let mockLeads: Lead[] = [
         id: 'act-3',
         leadId: 'lead-1',
         type: 'STATUS_CHANGED',
-        title: 'Status Updated to QUALIFIED',
-        description: 'Student cleared technical eligibility and confirmed fee budget.',
+        title: 'Status: Contacted -> Qualified',
+        description: 'Completed 15-min eligibility assessment call',
         performedByName: 'Pooja Sharma',
         createdAt: new Date(Date.now() - 2 * 86400000).toISOString()
       }
@@ -162,15 +162,15 @@ let mockLeads: Lead[] = [
   },
   {
     id: 'lead-2',
-    studentName: 'Sneha Kulkarni',
-    phone: '+91 98220 11223',
-    email: 'sneha.kulkarni@outlook.com',
-    city: 'Pune',
+    studentName: 'Sneha Roy',
+    phone: '+91 91234 56789',
+    email: 'sneha.roy@outlook.com',
+    city: 'Kolkata',
     qualification: 'B.Sc Statistics',
     courseId: 'course-2',
     courseName: 'Data Science & Machine Learning Bootcamp',
     status: 'FOLLOW_UP',
-    priority: 'HOT',
+    priority: 'HIGH',
     source: 'GOOGLE_ADS',
     assignedToId: 'counselor-2',
     assignedToName: 'Vikram Mehta',
@@ -178,7 +178,7 @@ let mockLeads: Lead[] = [
       {
         id: 'note-2',
         leadId: 'lead-2',
-        content: 'Requested weekend demo class link for ML module.',
+        content: 'Attended free weekend masterclass. Requested installment payment details.',
         authorId: 'counselor-2',
         authorName: 'Vikram Mehta',
         createdAt: new Date(Date.now() - 1 * 86400000).toISOString()
@@ -189,16 +189,16 @@ let mockLeads: Lead[] = [
         id: 'act-4',
         leadId: 'lead-2',
         type: 'CREATED',
-        title: 'Google Ads Enquiry',
-        description: 'Captured via Google Search "Best Data Science Course in Pune"',
+        title: 'Google Ads Lead Captured',
+        description: 'Search keyword: "Best Data Science Institute"',
         createdAt: new Date(Date.now() - 2 * 86400000).toISOString()
       },
       {
         id: 'act-5',
         leadId: 'lead-2',
-        type: 'STATUS_CHANGED',
-        title: 'Moved to FOLLOW_UP',
-        description: 'Demo class invitation sent on WhatsApp.',
+        type: 'FOLLOW_UP_SCHEDULED',
+        title: 'Fee Structure Discussion Scheduled',
+        description: 'Follow-up call with parents arranged for Saturday afternoon',
         performedByName: 'Vikram Mehta',
         createdAt: new Date(Date.now() - 1 * 86400000).toISOString()
       }
@@ -209,52 +209,53 @@ let mockLeads: Lead[] = [
   {
     id: 'lead-3',
     studentName: 'Rohan Deshmukh',
-    phone: '+91 97654 32109',
+    phone: '+91 99887 76655',
     email: 'rohan.d@gmail.com',
-    city: 'Nagpur',
-    qualification: 'Class 11 CBSE',
+    city: 'Pune',
+    qualification: '12th Science (PCM)',
     courseId: 'course-3',
     courseName: 'IIT-JEE & NEET Foundation Program',
-    status: 'NEW',
-    priority: 'WARM',
-    source: 'WEBSITE',
-    assignedToId: undefined,
-    assignedToName: undefined,
+    status: 'CONTACTED',
+    priority: 'MEDIUM',
+    source: 'WALK_IN',
+    assignedToId: 'counselor-1',
+    assignedToName: 'Pooja Sharma',
     notes: [],
     activities: [
       {
         id: 'act-6',
         leadId: 'lead-3',
         type: 'CREATED',
-        title: 'Website Form Submission',
-        description: 'Parent enquiry for JEE 2-year classroom batch.',
-        createdAt: new Date(Date.now() - 6 * 3600000).toISOString()
+        title: 'Center Walk-In Enquiry',
+        description: 'Visited Pune branch with father for 2-year classroom batch brochure',
+        createdAt: new Date(Date.now() - 1 * 86400000).toISOString()
       }
     ],
-    createdAt: new Date(Date.now() - 6 * 3600000).toISOString(),
-    updatedAt: new Date(Date.now() - 6 * 3600000).toISOString(),
+    createdAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 86400000).toISOString(),
   },
   {
     id: 'lead-4',
-    studentName: 'Priyanka Nair',
-    phone: '+91 94471 23456',
-    email: 'priyanka.nair@gmail.com',
-    city: 'Kochi',
-    qualification: 'BCA Final Year',
-    courseId: 'course-1',
-    courseName: 'Full Stack Java & Spring Boot Masterclass',
+    studentName: 'Kavya Sundaram',
+    phone: '+91 97711 22334',
+    email: 'kavya.sundaram@gmail.com',
+    city: 'Chennai',
+    qualification: 'B.Com Graduate',
+    courseId: 'course-4',
+    courseName: 'Digital Marketing & Growth Hacking',
     status: 'CONVERTED',
-    priority: 'HOT',
-    source: 'REFERRAL',
-    assignedToId: 'counselor-1',
-    assignedToName: 'Pooja Sharma',
+    priority: 'HIGH',
+    source: 'WEBSITE',
+    assignedToId: 'counselor-2',
+    assignedToName: 'Vikram Mehta',
     notes: [
       {
         id: 'note-3',
         leadId: 'lead-4',
-        content: 'Fee paid in full (₹45,000). Enrolled in Batch Java-2026-A.',
-        authorName: 'Pooja Sharma',
-        createdAt: new Date(Date.now() - 12 * 3600000).toISOString()
+        content: 'Tuition fee ₹25,000 paid via UPI. Batch onboarding credentials dispatched.',
+        authorId: 'counselor-2',
+        authorName: 'Vikram Mehta',
+        createdAt: new Date(Date.now() - 0.5 * 86400000).toISOString()
       }
     ],
     activities: [
@@ -262,42 +263,40 @@ let mockLeads: Lead[] = [
         id: 'act-7',
         leadId: 'lead-4',
         type: 'CONVERTED',
-        title: 'Student Enrolled & Converted',
-        description: 'Registration fee receipt #REC-8821 verified.',
-        performedByName: 'Pooja Sharma',
-        createdAt: new Date(Date.now() - 12 * 3600000).toISOString()
+        title: 'Admission Confirmed',
+        description: 'Student enrolled and batch assigned',
+        performedByName: 'Vikram Mehta',
+        createdAt: new Date(Date.now() - 0.5 * 86400000).toISOString()
       }
     ],
     createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 12 * 3600000).toISOString(),
+    updatedAt: new Date(Date.now() - 0.5 * 86400000).toISOString(),
   },
   {
     id: 'lead-5',
-    studentName: 'Karthik Raja',
-    phone: '+91 98410 99887',
-    email: 'karthik.raja@yahoo.com',
-    city: 'Chennai',
-    qualification: 'Diploma Mechanical',
+    studentName: 'Ankit Tiwari',
+    phone: '+91 96543 21876',
+    email: 'ankit.tiwari@gmail.com',
+    city: 'Lucknow',
+    qualification: 'BCA Final Year',
     courseId: 'course-1',
     courseName: 'Full Stack Java & Spring Boot Masterclass',
-    status: 'CONTACTED',
-    priority: 'COLD',
-    source: 'WALK_IN',
-    assignedToId: 'counselor-2',
-    assignedToName: 'Vikram Mehta',
+    status: 'NEW',
+    priority: 'HIGH',
+    source: 'META_ADS',
     notes: [],
     activities: [
       {
         id: 'act-8',
         leadId: 'lead-5',
         type: 'CREATED',
-        title: 'Walk-in Desk Enquiry',
-        description: 'Visited Anna Nagar branch counseling desk.',
-        createdAt: new Date(Date.now() - 24 * 3600000).toISOString()
+        title: 'New Webform Enquiry',
+        description: 'Submitted enquiry through landing page form',
+        createdAt: new Date().toISOString()
       }
     ],
-    createdAt: new Date(Date.now() - 24 * 3600000).toISOString(),
-    updatedAt: new Date(Date.now() - 24 * 3600000).toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   }
 ];
 
@@ -305,16 +304,16 @@ let mockFollowUps: FollowUp[] = [
   {
     id: 'fu-1',
     leadId: 'lead-2',
-    leadName: 'Sneha Kulkarni',
-    leadPhone: '+91 98220 11223',
+    leadName: 'Sneha Roy',
+    leadPhone: '+91 91234 56789',
     courseName: 'Data Science & Machine Learning Bootcamp',
-    scheduledAt: new Date(Date.now() + 3 * 3600000).toISOString(), // Today
+    scheduledAt: new Date(Date.now() + 4 * 3600000).toISOString(), // Today in 4 hrs
     type: 'PHONE_CALL',
     counselorId: 'counselor-2',
     counselorName: 'Vikram Mehta',
-    notes: 'Follow up after weekend ML demo lecture to review syllabus and installment options.',
-    status: 'SCHEDULED',
-    createdAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+    notes: 'Call with parents regarding weekend batch timing & installment split.',
+    status: 'PENDING',
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
   },
   {
     id: 'fu-2',
@@ -322,11 +321,11 @@ let mockFollowUps: FollowUp[] = [
     leadName: 'Aarav Patel',
     leadPhone: '+91 98765 43210',
     courseName: 'Full Stack Java & Spring Boot Masterclass',
-    scheduledAt: new Date(Date.now() - 4 * 3600000).toISOString(), // Overdue by 4 hours
-    type: 'WHATSAPP',
+    scheduledAt: new Date(Date.now() - 12 * 3600000).toISOString(), // Overdue 12 hrs
+    type: 'DEMO_CLASS',
     counselorId: 'counselor-1',
     counselorName: 'Pooja Sharma',
-    notes: 'Send early-bird discount token for Java Spring Batch registration before 5 PM.',
+    notes: 'Share recorded Spring Boot demo session and evaluate candidate queries.',
     status: 'OVERDUE',
     createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
   },
@@ -334,50 +333,62 @@ let mockFollowUps: FollowUp[] = [
     id: 'fu-3',
     leadId: 'lead-3',
     leadName: 'Rohan Deshmukh',
-    leadPhone: '+91 97654 32109',
+    leadPhone: '+91 99887 76655',
     courseName: 'IIT-JEE & NEET Foundation Program',
-    scheduledAt: new Date(Date.now() + 26 * 3600000).toISOString(), // Tomorrow (Upcoming)
+    scheduledAt: new Date(Date.now() + 26 * 3600000).toISOString(), // Tomorrow
     type: 'IN_PERSON',
     counselorId: 'counselor-1',
     counselorName: 'Pooja Sharma',
-    notes: 'Parents requested center visit and meeting with Head of Physics faculty.',
-    status: 'SCHEDULED',
-    createdAt: new Date(Date.now() - 6 * 3600000).toISOString(),
+    notes: 'Scholarship entrance exam briefing in branch office.',
+    status: 'PENDING',
+    createdAt: new Date(Date.now() - 0.5 * 86400000).toISOString(),
   },
   {
     id: 'fu-4',
     leadId: 'lead-4',
-    leadName: 'Priyanka Nair',
-    leadPhone: '+91 94471 23456',
-    courseName: 'Full Stack Java & Spring Boot Masterclass',
-    scheduledAt: new Date(Date.now() - 14 * 3600000).toISOString(),
-    type: 'PHONE_CALL',
-    counselorId: 'counselor-1',
-    counselorName: 'Pooja Sharma',
-    notes: 'Confirm batch timing preferences and LMS portal access credentials.',
-    outcome: 'Student confirmed 7 PM weekday batch. Full payment confirmed.',
+    leadName: 'Kavya Sundaram',
+    leadPhone: '+91 97711 22334',
+    courseName: 'Digital Marketing & Growth Hacking',
+    scheduledAt: new Date(Date.now() - 48 * 3600000).toISOString(),
+    type: 'WHATSAPP',
+    counselorId: 'counselor-2',
+    counselorName: 'Vikram Mehta',
+    notes: 'Send syllabus PDF and fee payment link via WhatsApp.',
+    outcome: 'Candidate completed payment via link. Converted successfully.',
     status: 'COMPLETED',
-    completedAt: new Date(Date.now() - 12 * 3600000).toISOString(),
-    createdAt: new Date(Date.now() - 24 * 3600000).toISOString(),
+    completedAt: new Date(Date.now() - 24 * 3600000).toISOString(),
+    createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
   }
 ];
 
-class ApiService {
+export class ApiService {
+  private static instance: ApiService;
+
+  private constructor() {}
+
+  public static getInstance(): ApiService {
+    if (!ApiService.instance) {
+      ApiService.instance = new ApiService();
+    }
+    return ApiService.instance;
+  }
+
   /**
-   * Core request wrapper configured with HttpOnly credentials,
-   * CSRF protection (X-XSRF-TOKEN), and standard error parsing.
+   * Centralized HTTP request engine:
+   * - Sets Content-Type: application/json
+   * - Injects credentials: 'include' (for HttpOnly jwt_token cookie transmission)
+   * - Attaches X-XSRF-TOKEN header on mutating methods (POST, PUT, PATCH, DELETE)
    */
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`;
-    const method = (options.method || 'GET').toUpperCase();
+  public async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
       ...(options.headers as Record<string, string>),
     };
 
-    // Attach CSRF token on state-changing requests (POST, PUT, PATCH, DELETE)
+    // Attach CSRF header on state-changing requests
+    const method = options.method?.toUpperCase() || 'GET';
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
       const xsrfToken = getCookie('XSRF-TOKEN');
       if (xsrfToken) {
@@ -388,68 +399,58 @@ class ApiService {
     const config: RequestInit = {
       ...options,
       headers,
-      credentials: 'include', // Ensure cookies (jwt_token HttpOnly + XSRF-TOKEN) are automatically sent
+      credentials: 'include',
     };
 
     try {
       const response = await fetch(url, config);
 
       if (!response.ok) {
-        let errorMessage = `HTTP Error ${response.status}: ${response.statusText}`;
+        let errorMessage = 'An error occurred';
+        let errorData: any;
         try {
-          const errorData = await response.json();
-          if (errorData.message) {
-            errorMessage = errorData.message;
-          }
+          errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || response.statusText || errorMessage;
         } catch {
-          // Fallback if response is not JSON
+          errorMessage = response.statusText || errorMessage;
         }
-        const error = new Error(errorMessage);
-        (error as any).status = response.status;
+        const error: any = new Error(errorMessage);
+        error.status = response.status;
+        error.data = errorData;
         throw error;
       }
 
-      // If empty response (204 No Content)
+      // Handle 204 No Content
       if (response.status === 204) {
         return {} as T;
       }
 
       return await response.json();
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        throw new Error('Request timed out. Please try again.');
-      }
-      throw error;
+    } catch (err: any) {
+      // Re-throw with status code preserved
+      throw err;
     }
   }
 
   // ==========================================
-  // AUTHENTICATION & MULTI-TENANCY METHODS
+  // AUTHENTICATION & SESSION METHODS
   // ==========================================
 
   public async getCsrfToken(): Promise<CsrfResponse> {
-    try {
-      return await this.request<CsrfResponse>('/auth/csrf');
-    } catch {
-      return { message: 'CSRF token initialized' };
-    }
+    return this.request<CsrfResponse>('/auth/csrf');
   }
 
-  public async getHealthStatus(): Promise<HealthResponse> {
-    return this.request<HealthResponse>('/health');
-  }
-
-  public async register(request: RegisterRequest): Promise<AuthResponse> {
-    return this.request<AuthResponse>('/auth/register', {
+  public async login(req: LoginRequest): Promise<AuthResponse> {
+    return this.request<AuthResponse>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify(request),
+      body: JSON.stringify(req),
     });
   }
 
-  public async login(request: LoginRequest): Promise<AuthResponse> {
-    return this.request<AuthResponse>('/auth/login', {
+  public async register(req: RegisterRequest): Promise<AuthResponse> {
+    return this.request<AuthResponse>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify(request),
+      body: JSON.stringify(req),
     });
   }
 
@@ -467,13 +468,23 @@ class ApiService {
     return this.request<Organization>('/organizations/me');
   }
 
-  // ==========================================
-  // COUNSELORS / USERS
-  // ==========================================
+  public async checkHealth(): Promise<HealthResponse> {
+    return this.request<HealthResponse>('/health');
+  }
+
+  public async getHealthStatus(): Promise<HealthResponse> {
+    return this.checkHealth();
+  }
 
   public async getCounselors(): Promise<CounselorOption[]> {
     try {
-      return await this.request<CounselorOption[]>('/users/counselors');
+      const users = await this.request<any[]>('/users');
+      return users.map(u => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role
+      }));
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       return mockCounselors;
@@ -493,12 +504,31 @@ class ApiService {
       if (filters.source && filters.source !== 'ALL') params.append('source', filters.source);
       if (filters.courseId && filters.courseId !== 'ALL') params.append('courseId', filters.courseId);
       if (filters.counselorId && filters.counselorId !== 'ALL') params.append('assignedToId', filters.counselorId);
-      params.append('page', filters.page.toString());
+
+      // Backend Spring Data uses 0-indexed page, frontend uses 1-indexed
+      params.append('page', Math.max(0, filters.page - 1).toString());
       params.append('size', filters.size.toString());
       if (filters.sortBy) params.append('sortBy', filters.sortBy);
-      if (filters.sortDir) params.append('sortDir', filters.sortDir);
+      if (filters.sortDir) params.append('sortDir', filters.sortDir.toLowerCase());
 
-      return await this.request<PaginatedResponse<Lead>>(`/leads?${params.toString()}`);
+      const res = await this.request<any>(`/leads?${params.toString()}`);
+      const content: Lead[] = (res.content || []).map((l: any) => ({
+        ...l,
+        studentName: l.studentName || l.name || 'Student',
+        courseId: l.courseId || l.course?.id,
+        courseName: l.courseName || l.course?.name,
+        assignedToId: l.assignedToId || l.assignedTo?.id,
+        assignedToName: l.assignedToName || l.assignedTo?.name,
+      }));
+
+      return {
+        content,
+        totalElements: res.totalElements ?? content.length,
+        totalPages: res.totalPages ?? 1,
+        page: filters.page,
+        size: filters.size,
+        last: res.last
+      };
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       // Fallback in-memory query engine during Phase 3 backend integration
@@ -554,7 +584,15 @@ class ApiService {
 
   public async getLead(id: string): Promise<Lead> {
     try {
-      return await this.request<Lead>(`/leads/${id}`);
+      const l = await this.request<any>(`/leads/${id}`);
+      return {
+        ...l,
+        studentName: l.studentName || l.name || 'Student',
+        courseId: l.courseId || l.course?.id,
+        courseName: l.courseName || l.course?.name,
+        assignedToId: l.assignedToId || l.assignedTo?.id,
+        assignedToName: l.assignedToName || l.assignedTo?.name,
+      };
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       const found = mockLeads.find(l => l.id === id);
@@ -565,10 +603,28 @@ class ApiService {
 
   public async createLead(req: CreateLeadRequest): Promise<Lead> {
     try {
-      return await this.request<Lead>('/leads', {
+      const payload = {
+        name: req.studentName || req.name,
+        phone: req.phone,
+        email: req.email,
+        courseId: req.courseId,
+        source: req.source,
+        priority: req.priority,
+        assignedToUserId: req.assignedToId || req.assignedToUserId,
+        notes: req.initialNote || req.notes
+      };
+      const l = await this.request<any>('/leads', {
         method: 'POST',
-        body: JSON.stringify(req),
+        body: JSON.stringify(payload),
       });
+      return {
+        ...l,
+        studentName: l.studentName || l.name || req.studentName,
+        courseId: l.courseId || l.course?.id || req.courseId,
+        courseName: l.courseName || l.course?.name,
+        assignedToId: l.assignedToId || l.assignedTo?.id || req.assignedToId,
+        assignedToName: l.assignedToName || l.assignedTo?.name,
+      };
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       const course = mockCourses.find(c => c.id === req.courseId);
@@ -613,10 +669,27 @@ class ApiService {
 
   public async updateLead(id: string, req: UpdateLeadRequest): Promise<Lead> {
     try {
-      return await this.request<Lead>(`/leads/${id}`, {
+      const payload = {
+        name: req.studentName || req.name,
+        phone: req.phone,
+        email: req.email,
+        courseId: req.courseId,
+        source: req.source,
+        priority: req.priority,
+        notes: req.notes
+      };
+      const l = await this.request<any>(`/leads/${id}`, {
         method: 'PUT',
-        body: JSON.stringify(req),
+        body: JSON.stringify(payload),
       });
+      return {
+        ...l,
+        studentName: l.studentName || l.name,
+        courseId: l.courseId || l.course?.id,
+        courseName: l.courseName || l.course?.name,
+        assignedToId: l.assignedToId || l.assignedTo?.id,
+        assignedToName: l.assignedToName || l.assignedTo?.name,
+      };
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       const index = mockLeads.findIndex(l => l.id === id);
@@ -629,6 +702,7 @@ class ApiService {
       const updated: Lead = {
         ...existing,
         ...req,
+        studentName: req.studentName || existing.studentName,
         courseName: course ? course.name : existing.courseName,
         assignedToName: counselor ? counselor.name : existing.assignedToName,
         updatedAt: new Date().toISOString()
@@ -641,10 +715,18 @@ class ApiService {
 
   public async updateLeadStatus(id: string, status: LeadStatus): Promise<Lead> {
     try {
-      return await this.request<Lead>(`/leads/${id}/status`, {
+      const l = await this.request<any>(`/leads/${id}/status`, {
         method: 'PATCH',
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, remarks: `Status updated to ${status}` }),
       });
+      return {
+        ...l,
+        studentName: l.studentName || l.name,
+        courseId: l.courseId || l.course?.id,
+        courseName: l.courseName || l.course?.name,
+        assignedToId: l.assignedToId || l.assignedTo?.id,
+        assignedToName: l.assignedToName || l.assignedTo?.name,
+      };
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       const lead = mockLeads.find(l => l.id === id);
@@ -670,10 +752,18 @@ class ApiService {
 
   public async assignLead(id: string, counselorId: string): Promise<Lead> {
     try {
-      return await this.request<Lead>(`/leads/${id}/assign`, {
-        method: 'PATCH',
-        body: JSON.stringify({ counselorId }),
+      const l = await this.request<any>(`/leads/${id}/assign`, {
+        method: 'POST',
+        body: JSON.stringify({ assignedToUserId: counselorId, remarks: 'Assigned counselor' }),
       });
+      return {
+        ...l,
+        studentName: l.studentName || l.name,
+        courseId: l.courseId || l.course?.id,
+        courseName: l.courseName || l.course?.name,
+        assignedToId: l.assignedToId || l.assignedTo?.id,
+        assignedToName: l.assignedToName || l.assignedTo?.name,
+      };
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       const lead = mockLeads.find(l => l.id === id);
@@ -700,9 +790,10 @@ class ApiService {
 
   public async deleteLead(id: string): Promise<{ success: boolean }> {
     try {
-      return await this.request<{ success: boolean }>(`/leads/${id}`, {
+      await this.request<{ message: string }>(`/leads/${id}`, {
         method: 'DELETE',
       });
+      return { success: true };
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       mockLeads = mockLeads.filter(l => l.id !== id);
@@ -712,7 +803,13 @@ class ApiService {
 
   public async getLeadActivities(id: string): Promise<ActivityEvent[]> {
     try {
-      return await this.request<ActivityEvent[]>(`/leads/${id}/activities`);
+      const items = await this.request<any[]>(`/leads/${id}/activities`);
+      return items.map(a => ({
+        ...a,
+        title: a.title || a.summary || 'Activity',
+        description: a.description || a.details || a.summary || '',
+        performedByName: a.performedByName || a.performedBy?.name
+      }));
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       const lead = mockLeads.find(l => l.id === id);
@@ -722,23 +819,26 @@ class ApiService {
 
   public async addLeadNote(id: string, content: string, authorName?: string): Promise<Lead> {
     try {
-      return await this.request<Lead>(`/leads/${id}/activities`, {
+      await this.request<any>(`/leads/${id}/activities`, {
         method: 'POST',
-        body: JSON.stringify({ type: 'NOTE_ADDED', content }),
+        body: JSON.stringify({ type: 'NOTE_ADDED', summary: content, details: content }),
       });
+      return await this.getLead(id);
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       const lead = mockLeads.find(l => l.id === id);
       if (!lead) throw new Error('Lead not found');
 
       if (!lead.notes) lead.notes = [];
-      lead.notes.unshift({
-        id: `note-${Date.now()}`,
-        leadId: id,
-        content,
-        authorName: authorName || 'Staff',
-        createdAt: new Date().toISOString(),
-      });
+      if (Array.isArray(lead.notes)) {
+        lead.notes.unshift({
+          id: `note-${Date.now()}`,
+          leadId: id,
+          content,
+          authorName: authorName || 'Staff',
+          createdAt: new Date().toISOString(),
+        });
+      }
 
       if (!lead.activities) lead.activities = [];
       lead.activities.unshift({
@@ -758,10 +858,19 @@ class ApiService {
 
   public async addLeadActivity(id: string, activity: { type: string; title?: string; description?: string; content?: string }): Promise<ActivityEvent> {
     try {
-      return await this.request<ActivityEvent>(`/leads/${id}/activities`, {
+      const res = await this.request<any>(`/leads/${id}/activities`, {
         method: 'POST',
-        body: JSON.stringify(activity),
+        body: JSON.stringify({
+          type: activity.type,
+          summary: activity.title || activity.description || 'Activity',
+          details: activity.description || activity.content || ''
+        }),
       });
+      return {
+        ...res,
+        title: res.title || res.summary || 'Activity',
+        description: res.description || res.details || '',
+      };
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       const lead = mockLeads.find(l => l.id === id);
@@ -831,9 +940,10 @@ class ApiService {
 
   public async deleteCourse(id: string): Promise<{ success: boolean }> {
     try {
-      return await this.request<{ success: boolean }>(`/courses/${id}`, {
+      await this.request<{ message: string }>(`/courses/${id}`, {
         method: 'DELETE',
       });
+      return { success: true };
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       mockCourses = mockCourses.filter(c => c.id !== id);
@@ -847,14 +957,23 @@ class ApiService {
 
   public async getFollowUps(status?: string): Promise<FollowUp[]> {
     try {
-      const q = status ? `?status=${status}` : '';
-      return await this.request<FollowUp[]>(`/follow-ups${q}`);
+      const q = status && status !== 'ALL' ? `?status=${status}` : '';
+      const list = await this.request<any[]>(`/follow-ups${q}`);
+      return list.map((fu: any) => ({
+        ...fu,
+        type: fu.type || 'PHONE_CALL',
+        notes: fu.notes || '',
+        outcome: fu.outcome || fu.outcomeNotes,
+        outcomeNotes: fu.outcomeNotes || fu.outcome,
+        counselorId: fu.counselorId || fu.assignedTo?.id,
+        counselorName: fu.counselorName || fu.assignedTo?.name,
+      }));
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       // Dynamic status calculation for mock
       const now = new Date();
       const list = mockFollowUps.map(fu => {
-        if (fu.status === 'SCHEDULED' && new Date(fu.scheduledAt) < now) {
+        if (fu.status === 'PENDING' && new Date(fu.scheduledAt) < now) {
           return { ...fu, status: 'OVERDUE' as const };
         }
         return fu;
@@ -869,10 +988,23 @@ class ApiService {
 
   public async createFollowUp(req: CreateFollowUpRequest): Promise<FollowUp> {
     try {
-      return await this.request<FollowUp>(`/leads/${req.leadId}/follow-ups`, {
+      const payload = {
+        scheduledAt: req.scheduledAt,
+        priority: req.priority || 'HIGH',
+        notes: req.notes,
+        assignedToUserId: req.counselorId || req.assignedToUserId
+      };
+      const fu = await this.request<any>(`/leads/${req.leadId}/follow-ups`, {
         method: 'POST',
-        body: JSON.stringify(req),
+        body: JSON.stringify(payload),
       });
+      return {
+        ...fu,
+        type: req.type,
+        notes: fu.notes || req.notes,
+        counselorId: fu.counselorId || fu.assignedTo?.id || req.counselorId,
+        counselorName: fu.counselorName || fu.assignedTo?.name,
+      };
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       const lead = mockLeads.find(l => l.id === req.leadId);
@@ -889,7 +1021,7 @@ class ApiService {
         counselorId: req.counselorId,
         counselorName: counselor?.name,
         notes: req.notes,
-        status: 'SCHEDULED',
+        status: 'PENDING',
         createdAt: new Date().toISOString()
       };
 
@@ -916,10 +1048,17 @@ class ApiService {
 
   public async completeFollowUp(id: string, outcomeNote?: string): Promise<FollowUp> {
     try {
-      return await this.request<FollowUp>(`/follow-ups/${id}/complete`, {
+      const fu = await this.request<any>(`/follow-ups/${id}/complete`, {
         method: 'PATCH',
-        body: JSON.stringify({ outcome: outcomeNote }),
+        body: JSON.stringify({ outcomeNotes: outcomeNote }),
       });
+      return {
+        ...fu,
+        outcome: fu.outcome || fu.outcomeNotes,
+        outcomeNotes: fu.outcomeNotes || fu.outcome,
+        counselorId: fu.counselorId || fu.assignedTo?.id,
+        counselorName: fu.counselorName || fu.assignedTo?.name,
+      };
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       const fu = mockFollowUps.find(f => f.id === id);
@@ -948,9 +1087,14 @@ class ApiService {
 
   public async cancelFollowUp(id: string): Promise<FollowUp> {
     try {
-      return await this.request<FollowUp>(`/follow-ups/${id}/cancel`, {
+      const fu = await this.request<any>(`/follow-ups/${id}/cancel`, {
         method: 'PATCH',
       });
+      return {
+        ...fu,
+        counselorId: fu.counselorId || fu.assignedTo?.id,
+        counselorName: fu.counselorName || fu.assignedTo?.name,
+      };
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       const fu = mockFollowUps.find(f => f.id === id);
@@ -981,7 +1125,36 @@ class ApiService {
 
   public async getDashboardMetrics(): Promise<DashboardStats> {
     try {
-      return await this.request<DashboardStats>('/dashboard/metrics');
+      const raw = await this.request<any>('/dashboard/metrics');
+      if (raw.pipeline) {
+        const sourceMap: Record<string, number> = {};
+        if (Array.isArray(raw.sources)) {
+          raw.sources.forEach((s: any) => {
+            if (s.source) sourceMap[s.source] = s.count || 0;
+          });
+        }
+
+        return {
+          totalLeads: raw.totalLeads ?? 0,
+          newLeads: raw.pipeline?.newCount ?? 0,
+          contactedLeads: raw.pipeline?.contactedCount ?? 0,
+          qualifiedLeads: raw.pipeline?.qualifiedCount ?? 0,
+          inFollowUpLeads: raw.pipeline?.followUpCount ?? 0,
+          convertedLeads: raw.pipeline?.convertedCount ?? 0,
+          lostLeads: raw.pipeline?.lostCount ?? 0,
+          conversionRate: raw.conversionRatePercent ?? 0,
+          conversionRatePercent: raw.conversionRatePercent ?? 0,
+          followUpsToday: raw.followUps?.todayPending ?? 0,
+          overdueFollowUps: raw.followUps?.overdue ?? 0,
+          sourceDistribution: sourceMap,
+          sources: raw.sources || [],
+          pipeline: raw.pipeline,
+          followUps: raw.followUps,
+          recentLeads: raw.recentLeads || [],
+          urgentFollowUps: raw.urgentFollowUps || []
+        };
+      }
+      return raw;
     } catch (err: any) {
       if (!isFallbackEligible(err)) throw err;
       const totalLeads = mockLeads.length;
@@ -1047,4 +1220,4 @@ class ApiService {
   }
 }
 
-export const apiService = new ApiService();
+export const apiService = ApiService.getInstance();

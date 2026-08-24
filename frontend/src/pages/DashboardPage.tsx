@@ -53,6 +53,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     WEBSITE: 'Institute Website',
     WALK_IN: 'Walk-in Desk',
     REFERRAL: 'Student Referral',
+    WHATSAPP: 'WhatsApp Direct',
+    INSTAGRAM: 'Instagram Inquiries',
+    FACEBOOK: 'Facebook Ads',
     OTHER: 'Other Channels',
   };
 

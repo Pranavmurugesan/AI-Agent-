@@ -436,25 +436,39 @@ export const LeadDetailView: React.FC<LeadDetailViewProps> = ({
                 Logged Notes
               </h4>
 
-              {!lead.notes || lead.notes.length === 0 ? (
+              {(!lead.notes || (Array.isArray(lead.notes) && lead.notes.length === 0)) ? (
                 <div className="p-8 text-center text-xs text-slate-500 bg-slate-900/40 rounded-xl border border-slate-800">
                   No notes logged yet. Add your first note above.
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {lead.notes.map((n) => (
-                    <div key={n.id} className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1.5">
+                  {Array.isArray(lead.notes) ? (
+                    lead.notes.map((n: any) => (
+                      <div key={n.id || n.createdAt} className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-semibold text-blue-400">
+                            {n.authorName || user?.name || 'Staff Member'}
+                          </span>
+                          <span className="text-[11px] font-mono text-slate-500">
+                            {n.createdAt ? new Date(n.createdAt).toLocaleString('en-IN') : 'Just now'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-200 leading-relaxed">{n.content}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-semibold text-blue-400">
-                          {n.authorName || user?.name || 'Staff Member'}
+                          {user?.name || 'Staff Member'}
                         </span>
                         <span className="text-[11px] font-mono text-slate-500">
-                          {new Date(n.createdAt).toLocaleString('en-IN')}
+                          {lead.updatedAt ? new Date(lead.updatedAt).toLocaleString('en-IN') : 'Recent'}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-200 leading-relaxed">{n.content}</p>
+                      <p className="text-xs text-slate-200 leading-relaxed">{lead.notes}</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
             </div>

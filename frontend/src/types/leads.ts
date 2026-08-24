@@ -6,15 +6,32 @@ export type LeadStatus =
   | 'CONVERTED' 
   | 'LOST';
 
-export type LeadPriority = 'HOT' | 'WARM' | 'COLD';
+export type LeadPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'HOT' | 'WARM' | 'COLD';
 
-export type LeadSource = 
-  | 'META_ADS' 
-  | 'GOOGLE_ADS' 
-  | 'WEBSITE' 
-  | 'WALK_IN' 
-  | 'REFERRAL' 
+export type LeadSource =
+  | 'WEBSITE'
+  | 'WHATSAPP'
+  | 'INSTAGRAM'
+  | 'FACEBOOK'
+  | 'GOOGLE_ADS'
+  | 'META_ADS'
+  | 'REFERRAL'
+  | 'WALK_IN'
   | 'OTHER';
+
+export interface CourseSummary {
+  id: string;
+  name: string;
+  code?: string;
+  fee?: number;
+}
+
+export interface UserSummary {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
 
 export interface Course {
   id: string;
@@ -28,7 +45,7 @@ export interface Course {
   updatedAt?: string;
 }
 
-export type FollowUpStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'OVERDUE';
+export type FollowUpStatus = 'PENDING' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'OVERDUE';
 
 export type FollowUpType = 'PHONE_CALL' | 'WHATSAPP' | 'IN_PERSON' | 'DEMO_CLASS';
 
@@ -38,25 +55,36 @@ export interface FollowUp {
   leadName?: string;
   leadPhone?: string;
   courseName?: string;
-  scheduledAt: string;
-  type: FollowUpType;
+  assignedTo?: UserSummary;
   counselorId?: string;
   counselorName?: string;
+  scheduledAt: string;
+  type: FollowUpType;
+  priority?: LeadPriority;
   notes: string;
   outcome?: string;
+  outcomeNotes?: string;
   status: FollowUpStatus;
+  overdue?: boolean;
   completedAt?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export type ActivityType = 
   | 'CREATED'
   | 'STATUS_CHANGED'
+  | 'ASSIGNED'
   | 'COUNSELOR_ASSIGNED'
+  | 'REOPENED'
   | 'NOTE_ADDED'
+  | 'CALL_LOGGED'
+  | 'MESSAGE_LOGGED'
+  | 'EMAIL_LOGGED'
   | 'FOLLOW_UP_SCHEDULED'
   | 'FOLLOW_UP_COMPLETED'
   | 'FOLLOW_UP_CANCELLED'
+  | 'COURSE_CHANGED'
   | 'CONVERTED'
   | 'LOST';
 
@@ -64,9 +92,12 @@ export interface ActivityEvent {
   id: string;
   leadId: string;
   type: ActivityType;
+  summary?: string;
   title: string;
+  details?: string;
   description: string;
-  performedBy?: string;
+  metadata?: string;
+  performedBy?: UserSummary | string;
   performedByName?: string;
   createdAt: string;
 }
@@ -82,19 +113,23 @@ export interface Note {
 
 export interface Lead {
   id: string;
+  name?: string;
   studentName: string;
   phone: string;
+  normalizedPhone?: string;
   email?: string;
   city?: string;
   qualification?: string;
+  course?: CourseSummary;
   courseId?: string;
   courseName?: string;
   status: LeadStatus;
   priority: LeadPriority;
   source: LeadSource;
+  assignedTo?: UserSummary;
   assignedToId?: string;
   assignedToName?: string;
-  notes?: Note[];
+  notes?: string | Note[];
   followUps?: FollowUp[];
   activities?: ActivityEvent[];
   createdAt: string;
@@ -102,6 +137,7 @@ export interface Lead {
 }
 
 export interface CreateLeadRequest {
+  name?: string;
   studentName: string;
   phone: string;
   email?: string;
@@ -111,10 +147,13 @@ export interface CreateLeadRequest {
   priority: LeadPriority;
   source: LeadSource;
   assignedToId?: string;
+  assignedToUserId?: string;
+  notes?: string;
   initialNote?: string;
 }
 
 export interface UpdateLeadRequest {
+  name?: string;
   studentName?: string;
   phone?: string;
   email?: string;
@@ -124,6 +163,8 @@ export interface UpdateLeadRequest {
   priority?: LeadPriority;
   source?: LeadSource;
   assignedToId?: string;
+  assignedToUserId?: string;
+  notes?: string;
 }
 
 export interface LeadFilters {
@@ -136,7 +177,7 @@ export interface LeadFilters {
   page: number;
   size: number;
   sortBy?: string;
-  sortDir?: 'ASC' | 'DESC';
+  sortDir?: 'ASC' | 'DESC' | 'asc' | 'desc';
 }
 
 export interface PaginatedResponse<T> {
@@ -145,6 +186,7 @@ export interface PaginatedResponse<T> {
   totalPages: number;
   page: number;
   size: number;
+  last?: boolean;
 }
 
 export interface CounselorOption {
@@ -163,9 +205,24 @@ export interface DashboardStats {
   convertedLeads: number;
   lostLeads: number;
   conversionRate: number;
+  conversionRatePercent?: number;
   followUpsToday: number;
   overdueFollowUps: number;
-  sourceDistribution: Record<LeadSource, number>;
+  sourceDistribution: Record<string, number>;
+  sources?: Array<{ source: string; count: number }>;
+  pipeline?: {
+    newCount: number;
+    contactedCount: number;
+    qualifiedCount: number;
+    followUpCount: number;
+    convertedCount: number;
+    lostCount: number;
+  };
+  followUps?: {
+    todayPending: number;
+    overdue: number;
+    completedToday: number;
+  };
   recentLeads: Lead[];
   urgentFollowUps: FollowUp[];
 }
@@ -192,6 +249,8 @@ export interface CreateFollowUpRequest {
   leadId: string;
   scheduledAt: string;
   type: FollowUpType;
+  priority?: LeadPriority;
   counselorId?: string;
+  assignedToUserId?: string;
   notes: string;
 }
