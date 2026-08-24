@@ -2,6 +2,8 @@ import React from 'react';
 import { 
   LayoutDashboard, 
   Users, 
+  BookOpen,
+  CalendarCheck,
   MessageSquare, 
   Bot, 
   BarChart3, 
@@ -11,18 +13,24 @@ import {
   Lock
 } from 'lucide-react';
 
+export type AppPage = 'dashboard' | 'leads' | 'lead-detail' | 'courses' | 'follow-ups';
+
 interface SidebarProps {
   isOpen: boolean;
+  activePage: AppPage;
+  onNavigate: (page: AppPage) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, activePage, onNavigate }) => {
   const navItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, active: true, phase: 'Phase 1' },
-    { label: 'Enquiries & Leads', icon: Users, active: false, phase: 'Phase 3' },
-    { label: 'Conversations', icon: MessageSquare, active: false, phase: 'Phase 4' },
-    { label: 'AI Qualifier Agent', icon: Bot, active: false, phase: 'Phase 6' },
-    { label: 'Institute Analytics', icon: BarChart3, active: false, phase: 'Phase 9' },
-    { label: 'System Settings', icon: Settings, active: false, phase: 'Phase 10' },
+    { id: 'dashboard' as AppPage, label: 'Dashboard', icon: LayoutDashboard, available: true, phase: 'Phase 1-3' },
+    { id: 'leads' as AppPage, label: 'Enquiries & Leads', icon: Users, available: true, phase: 'Phase 3' },
+    { id: 'courses' as AppPage, label: 'Courses Catalog', icon: BookOpen, available: true, phase: 'Phase 3' },
+    { id: 'follow-ups' as AppPage, label: 'Counselor Tasks', icon: CalendarCheck, available: true, phase: 'Phase 3' },
+    { id: 'conversations' as any, label: 'Conversations', icon: MessageSquare, available: false, phase: 'Phase 4' },
+    { id: 'ai-qualifier' as any, label: 'AI Qualifier Agent', icon: Bot, available: false, phase: 'Phase 6' },
+    { id: 'analytics' as any, label: 'Institute Analytics', icon: BarChart3, available: false, phase: 'Phase 9' },
+    { id: 'settings' as any, label: 'System Settings', icon: Settings, available: false, phase: 'Phase 10' },
   ];
 
   return (
@@ -52,30 +60,35 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
       {/* Navigation Links */}
       <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
         <div className="px-3 py-2 text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
-          Navigation Shell
+          Navigation
         </div>
         {navItems.map((item) => {
           const Icon = item.icon;
+          const isActive = activePage === item.id || (activePage === 'lead-detail' && item.id === 'leads');
           return (
-            <div
+            <button
               key={item.label}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
-                item.active 
+              disabled={!item.available}
+              onClick={() => item.available && onNavigate(item.id)}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all text-left ${
+                isActive 
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' 
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  : item.available
+                    ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                    : 'text-slate-600 cursor-not-allowed opacity-60'
               }`}
             >
               <div className="flex items-center space-x-3">
                 <Icon className="w-4 h-4" />
                 <span>{item.label}</span>
               </div>
-              {!item.active && (
-                <span className="flex items-center space-x-1 text-[10px] text-slate-500 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+              {!item.available && (
+                <span className="flex items-center space-x-1 text-[10px] text-slate-600 bg-slate-900/80 px-1.5 py-0.5 rounded border border-slate-800">
                   <Lock className="w-2.5 h-2.5" />
                   <span>{item.phase}</span>
                 </span>
               )}
-            </div>
+            </button>
           );
         })}
       </nav>
@@ -83,9 +96,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
       {/* Footer Phase Status */}
       <div className="p-4 border-t border-slate-800">
         <div className="flex items-center justify-between text-xs text-slate-400">
-          <span className="font-mono">Phase 1</span>
-          <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] border border-emerald-500/20 font-medium">
-            Foundation Active
+          <span className="font-mono">Phase 3</span>
+          <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-[10px] border border-blue-500/20 font-medium">
+            Lead Engine Active
           </span>
         </div>
       </div>
