@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { apiService } from '../services/api';
 import { FollowUp, FollowUpStatus } from '../types/lead';
-import { CalendarCheck, Clock, CheckCircle2, XCircle, AlertTriangle, AlertCircle, Check } from 'lucide-react';
+import { User } from '../types/api';
+import { CalendarCheck, Clock, CheckCircle2, XCircle, AlertTriangle, AlertCircle, Check, UserCheck } from 'lucide-react';
 
-export const FollowUpsPage: React.FC = () => {
+interface FollowUpsPageProps {
+  currentUser?: User | null;
+}
+
+export const FollowUpsPage: React.FC<FollowUpsPageProps> = ({ currentUser }) => {
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
+  const [counselors, setCounselors] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<FollowUpStatus | 'ALL'>('ALL');
+  const [counselorFilter, setCounselorFilter] = useState<string>('');
+  const [todayOnly, setTodayOnly] = useState<boolean>(false);
   const [selectedFollowUp, setSelectedFollowUp] = useState<FollowUp | null>(null);
   const [outcomeNotes, setOutcomeNotes] = useState<string>('');
   const [completing, setCompleting] = useState<boolean>(false);
@@ -17,7 +25,11 @@ export const FollowUpsPage: React.FC = () => {
       setLoading(true);
       setError(null);
       const filterParam = statusFilter === 'ALL' ? undefined : statusFilter;
-      const data = await apiService.getFollowUps({ status: filterParam });
+      const data = await apiService.getFollowUps({ 
+        status: filterParam,
+        todayOnly: todayOnly || undefined,
+        assignedToId: counselorFilter || undefined
+      });
       setFollowUps(data);
     } catch (err: any) {
       setError(err.message || 'Failed to load follow-up tasks.');
@@ -26,9 +38,22 @@ export const FollowUpsPage: React.FC = () => {
     }
   };
 
+  const fetchCounselors = async () => {
+    try {
+      const data = await apiService.getUsers();
+      setCounselors(data);
+    } catch {
+      // Ignored
+    }
+  };
+
+  useEffect(() => {
+    fetchCounselors();
+  }, []);
+
   useEffect(() => {
     fetchFollowUps();
-  }, [statusFilter]);
+  }, [statusFilter, counselorFilter, todayOnly]);
 
   const handleComplete = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +73,7 @@ export const FollowUpsPage: React.FC = () => {
   };
 
   const handleCancel = async (id: string) => {
-    if (!confirm('Are you sure you want to cancel this follow-up?')) return;
+    if (!confirm('Are you sure you want to cancel this follow-up reminder?')) return;
     try {
       await apiService.cancelFollowUp(id);
       await fetchFollowUps();
@@ -64,29 +89,61 @@ export const FollowUpsPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
             <CalendarCheck className="w-6 h-6 text-blue-400" />
-            Counselor Follow-Up Tasks
+            Counselor Callback & Follow-Up Tasks
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Track student callbacks, scholarship follow-ups, and demo session reminders.
+            Track student callbacks, scholarship follow-ups, and demo lecture confirmations.
           </p>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap gap-2">
-        {(['ALL', 'PENDING', 'OVERDUE', 'COMPLETED', 'CANCELLED'] as const).map((tab) => (
+      {/* Filter Tabs & Counselor Selector */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          {(['ALL', 'PENDING', 'OVERDUE', 'COMPLETED', 'CANCELLED'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => {
+                setStatusFilter(tab as any);
+                setTodayOnly(false);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                statusFilter === tab && !todayOnly
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-900/30'
+                  : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 border border-slate-800'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+
           <button
-            key={tab}
-            onClick={() => setStatusFilter(tab as any)}
+            onClick={() => setTodayOnly(!todayOnly)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              statusFilter === tab
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-900/30'
+              todayOnly
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-900/30'
                 : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 border border-slate-800'
             }`}
           >
-            {tab}
+            📅 Today's Tasks
           </button>
-        ))}
+        </div>
+
+        {counselors.length > 0 && currentUser?.role === 'ADMIN' && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400">Counselor:</span>
+            <select
+              value={counselorFilter}
+              onChange={(e) => setCounselorFilter(e.target.value)}
+              className="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+            >
+              <option value="">All Institute Counselors</option>
+              {counselors.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -102,7 +159,7 @@ export const FollowUpsPage: React.FC = () => {
           <div className="p-12 text-center text-xs text-slate-400">Loading follow-ups...</div>
         ) : followUps.length === 0 ? (
           <div className="p-12 text-center text-xs text-slate-400">
-            No follow-up tasks found for the selected filter.
+            No follow-up tasks found for the selected filter criteria.
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -110,7 +167,7 @@ export const FollowUpsPage: React.FC = () => {
               <thead className="bg-slate-900/80 text-slate-400 uppercase text-[10px] font-semibold border-b border-slate-800">
                 <tr>
                   <th className="px-6 py-3">Student / Lead</th>
-                  <th className="px-6 py-3">Scheduled Date & Time</th>
+                  <th className="px-6 py-3">Scheduled Date & Time (IST)</th>
                   <th className="px-6 py-3">Priority</th>
                   <th className="px-6 py-3">Assigned Counselor</th>
                   <th className="px-6 py-3">Status</th>
@@ -152,7 +209,12 @@ export const FollowUpsPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-slate-300">
-                      {task.assignedTo ? task.assignedTo.name : '—'}
+                      {task.assignedTo ? (
+                        <span className="inline-flex items-center gap-1">
+                          <UserCheck className="w-3.5 h-3.5 text-blue-400" />
+                          {task.assignedTo.name}
+                        </span>
+                      ) : '—'}
                     </td>
                     <td className="px-6 py-4">
                       {task.status === 'COMPLETED' ? (
@@ -208,7 +270,7 @@ export const FollowUpsPage: React.FC = () => {
             </h2>
             <form onSubmit={handleComplete} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 font-medium mb-1">Outcome / Conversation Remarks</label>
+                <label className="block text-slate-400 font-medium mb-1">Outcome / Conversation Remarks *</label>
                 <textarea
                   rows={4}
                   required

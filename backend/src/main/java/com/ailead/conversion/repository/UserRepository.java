@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,6 +24,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("SELECT u FROM User u JOIN FETCH u.organization o WHERE u.id = :userId AND o.id = :orgId")
     Optional<User> findByIdAndOrganizationId(@Param("userId") UUID userId, @Param("orgId") UUID orgId);
+
+    List<User> findByOrganizationIdAndActiveTrue(UUID organizationId);
 
     boolean existsByOrganizationIdAndEmail(UUID organizationId, String email);
 }

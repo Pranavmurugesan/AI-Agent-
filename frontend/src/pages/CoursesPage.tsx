@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { apiService } from '../services/api';
 import { Course, CourseRequest } from '../types/lead';
-import { BookOpen, Plus, Search, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { User } from '../types/api';
+import { BookOpen, Plus, Search, CheckCircle2, XCircle, AlertCircle, ShieldAlert } from 'lucide-react';
 
-export const CoursesPage: React.FC = () => {
+interface CoursesPageProps {
+  currentUser?: User | null;
+}
+
+export const CoursesPage: React.FC<CoursesPageProps> = ({ currentUser }) => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +71,8 @@ export const CoursesPage: React.FC = () => {
     (c.code && c.code.toLowerCase().includes(search.toLowerCase()))
   );
 
+  const isAdmin = currentUser?.role === 'ADMIN';
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -73,19 +80,27 @@ export const CoursesPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-blue-400" />
-            Courses Catalog
+            Courses Catalog & Batches
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Manage your coaching institute's batches, courses, and fee structures.
+            Manage your coaching institute's academic programs, batches, and tuition structures.
           </p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-lg shadow-blue-900/30 transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          Add Course
-        </button>
+        
+        {isAdmin ? (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-lg shadow-blue-900/30 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            Add New Course
+          </button>
+        ) : (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-[11px] text-slate-400">
+            <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+            <span>Course Creation is restricted to Institute Admins</span>
+          </div>
+        )}
       </div>
 
       {/* Search & Stats Bar */}
@@ -94,7 +109,7 @@ export const CoursesPage: React.FC = () => {
           <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
           <input
             type="text"
-            placeholder="Search courses by name or code..."
+            placeholder="Search courses by program name or batch code..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-slate-900/70 border border-slate-800 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
@@ -112,20 +127,20 @@ export const CoursesPage: React.FC = () => {
       {/* Courses Table */}
       <div className="glass-panel border border-slate-800 rounded-xl overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-xs text-slate-400">Loading courses...</div>
+          <div className="p-12 text-center text-xs text-slate-400">Loading courses catalog...</div>
         ) : filteredCourses.length === 0 ? (
           <div className="p-12 text-center text-xs text-slate-400">
-            No courses found. Click "Add Course" to get started.
+            No courses found. {isAdmin ? 'Click "Add New Course" to register batch programs.' : ''}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-300">
               <thead className="bg-slate-900/80 text-slate-400 uppercase text-[10px] font-semibold border-b border-slate-800">
                 <tr>
-                  <th className="px-6 py-3">Course Name</th>
+                  <th className="px-6 py-3">Course / Batch Name</th>
                   <th className="px-6 py-3">Code</th>
                   <th className="px-6 py-3">Duration</th>
-                  <th className="px-6 py-3">Fee (INR)</th>
+                  <th className="px-6 py-3">Tuition Fee (INR)</th>
                   <th className="px-6 py-3">Status</th>
                 </tr>
               </thead>
@@ -148,7 +163,7 @@ export const CoursesPage: React.FC = () => {
                     <td className="px-6 py-4">
                       {course.active ? (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          <CheckCircle2 className="w-3 h-3" /> Active
+                          <CheckCircle2 className="w-3 h-3" /> Active Batch
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">
@@ -164,18 +179,18 @@ export const CoursesPage: React.FC = () => {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal for Admin */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="glass-panel border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4">
-            <h2 className="text-base font-bold text-slate-100">Create New Course</h2>
+            <h2 className="text-base font-bold text-slate-100">Create New Course / Batch</h2>
             <form onSubmit={handleCreateCourse} className="space-y-3 text-xs">
               <div>
                 <label className="block text-slate-400 font-medium mb-1">Course Name *</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. NEET Repeaters Batch 2026"
+                  placeholder="e.g. NEET Repeater Fastrack Batch"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500"
@@ -196,7 +211,7 @@ export const CoursesPage: React.FC = () => {
                   <label className="block text-slate-400 font-medium mb-1">Duration</label>
                   <input
                     type="text"
-                    placeholder="e.g. 1 Year / 6 Months"
+                    placeholder="e.g. 1 Year / 2 Years"
                     value={formData.duration}
                     onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500"
@@ -207,14 +222,14 @@ export const CoursesPage: React.FC = () => {
                 <label className="block text-slate-400 font-medium mb-1">Tuition Fee (₹ INR)</label>
                 <input
                   type="number"
-                  placeholder="e.g. 75000"
+                  placeholder="e.g. 110000"
                   value={formData.fee || ''}
                   onChange={(e) => setFormData({ ...formData, fee: parseFloat(e.target.value) || 0 })}
                   className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-slate-400 font-medium mb-1">Description</label>
+                <label className="block text-slate-400 font-medium mb-1">Description / Curriculum</label>
                 <textarea
                   rows={3}
                   placeholder="Target students, syllabus coverage, batch timings..."

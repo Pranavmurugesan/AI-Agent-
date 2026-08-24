@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiService } from '../services/api';
 import { Lead, LeadActivity, LeadStatus, LeadPriority, ActivityType } from '../types/lead';
+import { User } from '../types/api';
 import { 
   ArrowLeft, 
   Phone, 
@@ -10,22 +11,31 @@ import {
   CalendarPlus, 
   MessageSquarePlus, 
   Activity, 
-  AlertCircle
+  AlertCircle,
+  UserPlus
 } from 'lucide-react';
 
 interface LeadDetailPageProps {
   leadId: string;
   onBack: () => void;
+  currentUser?: User | null;
 }
 
-export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }) => {
+export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack, currentUser }) => {
   const [lead, setLead] = useState<Lead | null>(null);
   const [activities, setActivities] = useState<LeadActivity[]>([]);
+  const [counselors, setCounselors] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   // Status Change State
   const [updatingStatus, setUpdatingStatus] = useState<boolean>(false);
+
+  // Reassign Modal State
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState<boolean>(false);
+  const [assigneeId, setAssigneeId] = useState<string>('');
+  const [assignRemarks, setAssignRemarks] = useState<string>('');
+  const [assigning, setAssigning] = useState<boolean>(false);
 
   // New Follow-Up Form State
   const [scheduledAt, setScheduledAt] = useState<string>('');
@@ -43,12 +53,17 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
     try {
       setLoading(true);
       setError(null);
-      const [leadData, activityData] = await Promise.all([
+      const [leadData, activityData, usersData] = await Promise.all([
         apiService.getLead(leadId),
         apiService.getLeadActivities(leadId),
+        apiService.getUsers().catch(() => [] as User[]),
       ]);
       setLead(leadData);
       setActivities(activityData);
+      setCounselors(usersData);
+      if (leadData.assignedTo) {
+        setAssigneeId(leadData.assignedTo.id);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load lead details');
     } finally {
@@ -66,7 +81,7 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
       setUpdatingStatus(true);
       const updated = await apiService.updateLeadStatus(lead.id, {
         status: newStatus,
-        remarks: `Status updated via Lead Detail page to ${newStatus}`,
+        remarks: `Status updated via Student Profile to ${newStatus}`,
       });
       setLead(updated);
       const activityData = await apiService.getLeadActivities(lead.id);
@@ -75,6 +90,28 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
       alert(err.message || 'Failed to update lead status');
     } finally {
       setUpdatingStatus(false);
+    }
+  };
+
+  const handleReassign = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!lead) return;
+
+    try {
+      setAssigning(true);
+      const updated = await apiService.assignLead(lead.id, {
+        assignedToUserId: assigneeId || undefined,
+        remarks: assignRemarks.trim() || undefined,
+      });
+      setLead(updated);
+      setIsAssignModalOpen(false);
+      setAssignRemarks('');
+      const activityData = await apiService.getLeadActivities(lead.id);
+      setActivities(activityData);
+    } catch (err: any) {
+      alert(err.message || 'Failed to reassign counselor');
+    } finally {
+      setAssigning(false);
     }
   };
 
@@ -91,7 +128,7 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
       });
       setScheduledAt('');
       setFollowUpNotes('');
-      alert('Follow-up scheduled successfully!');
+      alert('Follow-up task scheduled successfully!');
       const activityData = await apiService.getLeadActivities(lead.id);
       setActivities(activityData);
     } catch (err: any) {
@@ -143,7 +180,7 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
 
   return (
     <div className="space-y-6">
-      {/* Top Bar */}
+      {/* Top Navigation Bar */}
       <div className="flex items-center justify-between">
         <button
           onClick={onBack}
@@ -152,7 +189,9 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
           <ArrowLeft className="w-4 h-4" /> Back to Leads List
         </button>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-400">Lead ID: <span className="font-mono text-slate-200">{lead.id.substring(0, 8)}...</span></span>
+          <span className="text-xs text-slate-400">
+            Lead ID: <span className="font-mono text-slate-200">{lead.id.substring(0, 8)}...</span>
+          </span>
         </div>
       </div>
 
@@ -164,13 +203,22 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
           {/* Main Profile Card */}
           <div className="glass-panel border border-slate-800 rounded-xl p-6 space-y-5">
             <div>
-              <h2 className="text-xl font-bold text-slate-100">{lead.name}</h2>
+              <div className="flex items-start justify-between">
+                <h2 className="text-xl font-bold text-slate-100">{lead.name}</h2>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                  lead.priority === 'URGENT' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
+                  lead.priority === 'HIGH' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
+                  'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                }`}>
+                  {lead.priority}
+                </span>
+              </div>
               <div className="flex items-center gap-2 mt-1">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
                   {lead.source}
                 </span>
                 <span className="text-[11px] text-slate-400">
-                  Created {new Date(lead.createdAt).toLocaleDateString('en-IN')}
+                  Inquired {new Date(lead.createdAt).toLocaleDateString('en-IN')}
                 </span>
               </div>
             </div>
@@ -178,7 +226,7 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
             {/* Pipeline Status Selector */}
             <div className="pt-2 border-t border-slate-800 space-y-2">
               <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Pipeline Funnel Status
+                Pipeline Funnel Stage
               </label>
               <select
                 disabled={updatingStatus || lead.status === 'CONVERTED'}
@@ -187,11 +235,11 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
                 className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs font-semibold text-slate-100 focus:outline-none focus:border-blue-500"
               >
                 <option value="NEW">NEW (Fresh Inquiry)</option>
-                <option value="CONTACTED">CONTACTED (Counselor Call)</option>
-                <option value="QUALIFIED">QUALIFIED (Eligible & Budget)</option>
-                <option value="FOLLOW_UP">FOLLOW_UP (Active Decision)</option>
-                <option value="CONVERTED">CONVERTED (Admitted/Enrolled)</option>
-                <option value="LOST">LOST (Dropped/Competitor)</option>
+                <option value="CONTACTED">CONTACTED (Counselor Call Completed)</option>
+                <option value="QUALIFIED">QUALIFIED (Eligible & Budget Match)</option>
+                <option value="FOLLOW_UP">FOLLOW_UP (Active Decision Stage)</option>
+                <option value="CONVERTED">CONVERTED (Admitted & Enrolled)</option>
+                <option value="LOST">LOST (Competitor / Dropped)</option>
               </select>
               {lead.status === 'CONVERTED' && (
                 <p className="text-[10px] text-emerald-400 font-medium">
@@ -217,11 +265,24 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
               )}
               <div className="flex items-center gap-3 text-slate-300">
                 <BookOpen className="w-4 h-4 text-slate-500 shrink-0" />
-                <span>Target Course: <strong className="text-slate-100">{lead.course ? lead.course.name : 'Undecided / General'}</strong></span>
+                <span>Target: <strong className="text-slate-100">{lead.course ? lead.course.name : 'Undecided / General'}</strong></span>
               </div>
-              <div className="flex items-center gap-3 text-slate-300">
-                <UserCheck className="w-4 h-4 text-slate-500 shrink-0" />
-                <span>Counselor: <strong className="text-slate-100">{lead.assignedTo ? lead.assignedTo.name : 'Unassigned'}</strong></span>
+              
+              {/* Counselor Assignment with Reassign Button */}
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center gap-3 text-slate-300">
+                  <UserCheck className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span>Counselor: <strong className="text-slate-100">{lead.assignedTo ? lead.assignedTo.name : 'Unassigned'}</strong></span>
+                </div>
+                {currentUser?.role === 'ADMIN' && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAssignModalOpen(true)}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] border border-slate-700 transition-colors"
+                  >
+                    <UserPlus className="w-3 h-3" /> Reassign
+                  </button>
+                )}
               </div>
             </div>
 
@@ -240,7 +301,7 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
           <div className="glass-panel border border-slate-800 rounded-xl p-5 space-y-3">
             <h3 className="text-xs font-bold text-slate-100 flex items-center gap-2">
               <CalendarPlus className="w-4 h-4 text-blue-400" />
-              Schedule Next Follow-Up
+              Schedule Next Callback / Follow-Up
             </h3>
             <form onSubmit={handleScheduleFollowUp} className="space-y-2.5 text-xs">
               <div>
@@ -267,10 +328,10 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
                 </select>
               </div>
               <div>
-                <label className="block text-slate-400 mb-1">Notes / Agenda</label>
+                <label className="block text-slate-400 mb-1">Callback Agenda / Notes</label>
                 <textarea
                   rows={2}
-                  placeholder="e.g. Call regarding scholarship discount decision"
+                  placeholder="e.g. Discuss batch timing preferences and scholarship token..."
                   value={followUpNotes}
                   onChange={(e) => setFollowUpNotes(e.target.value)}
                   className="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500"
@@ -294,12 +355,12 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
           <div className="glass-panel border border-slate-800 rounded-xl p-5 space-y-3">
             <h3 className="text-xs font-bold text-slate-100 flex items-center gap-2">
               <MessageSquarePlus className="w-4 h-4 text-blue-400" />
-              Log Counselor Interaction / Note
+              Log Counselor Interaction
             </h3>
             <form onSubmit={handleLogActivity} className="space-y-3 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Action Type</label>
+                  <label className="block text-slate-400 mb-1">Interaction Type</label>
                   <select
                     value={activityType}
                     onChange={(e) => setActivityType(e.target.value as ActivityType)}
@@ -316,7 +377,7 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Spoke with father; agreed to attend mock class"
+                    placeholder="e.g. Spoke with mother regarding hostel facility and batch timings"
                     value={activitySummary}
                     onChange={(e) => setActivitySummary(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500"
@@ -324,10 +385,10 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
                 </div>
               </div>
               <div>
-                <label className="block text-slate-400 mb-1">Detailed Remarks</label>
+                <label className="block text-slate-400 mb-1">Detailed Discussion Points</label>
                 <textarea
                   rows={2}
-                  placeholder="Detailed discussion points, objections, student career goals..."
+                  placeholder="Parent concerns, scholarship expectation, mock class schedule..."
                   value={activityDetails}
                   onChange={(e) => setActivityDetails(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500"
@@ -375,7 +436,7 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
                       </p>
                     )}
                     <div className="text-[10px] text-slate-500 flex items-center gap-2">
-                      <span>By: {act.performedBy ? act.performedBy.name : 'System Automated'}</span>
+                      <span>By: <strong className="text-slate-400">{act.performedBy ? act.performedBy.name : 'System Automated'}</strong></span>
                       <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">{act.type}</span>
                     </div>
                   </div>
@@ -386,6 +447,59 @@ export const LeadDetailPage: React.FC<LeadDetailPageProps> = ({ leadId, onBack }
         </div>
 
       </div>
+
+      {/* Counselor Reassignment Modal */}
+      {isAssignModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+          <div className="glass-panel border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4">
+            <h2 className="text-base font-bold text-slate-100">
+              Reassign Counselor for {lead.name}
+            </h2>
+            <form onSubmit={handleReassign} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 font-medium mb-1">Select Counselor *</label>
+                <select
+                  required
+                  value={assigneeId}
+                  onChange={(e) => setAssigneeId(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">Select Counselor</option>
+                  {counselors.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name} ({c.role})</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-slate-400 font-medium mb-1">Assignment Remarks</label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Reassigned due to language preference..."
+                  value={assignRemarks}
+                  onChange={(e) => setAssignRemarks(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAssignModalOpen(false)}
+                  className="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={assigning}
+                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-all shadow"
+                >
+                  {assigning ? 'Reassigning...' : 'Confirm Assignment'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

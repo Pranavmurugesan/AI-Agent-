@@ -132,6 +132,10 @@ class ApiService {
     return this.request<User>('/users/me');
   }
 
+  public async getUsers(): Promise<User[]> {
+    return this.request<User[]>('/users');
+  }
+
   public async getCurrentOrganization(): Promise<Organization> {
     return this.request<Organization>('/organizations/me');
   }

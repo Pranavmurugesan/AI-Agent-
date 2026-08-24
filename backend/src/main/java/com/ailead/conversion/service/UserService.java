@@ -29,4 +29,16 @@ public class UserService {
 
         return UserResponse.fromEntity(user);
     }
+
+    @Transactional(readOnly = true)
+    public java.util.List<UserResponse> getOrganizationUsers(UserPrincipal principal) {
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthenticated");
+        }
+
+        return userRepository.findByOrganizationIdAndActiveTrue(principal.getOrganizationId())
+                .stream()
+                .map(UserResponse::fromEntity)
+                .collect(java.util.stream.Collectors.toList());
+    }
 }
