@@ -177,4 +177,27 @@ class Phase3TenantIsolationTest {
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].name").value("Course Alpha"));
     }
+
+    @Test
+    @DisplayName("Org A user accessing Org B lead activities should return HTTP 400")
+    void getActivities_CrossTenant_ShouldReturn400() throws Exception {
+        UserPrincipal principalA = UserPrincipal.create(adminA);
+
+        mockMvc.perform(get("/api/v1/leads/" + leadB.getId() + "/activities").with(user(principalA)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Org A user completing Org B follow-up should return HTTP 400")
+    void completeFollowUp_CrossTenant_ShouldReturn400() throws Exception {
+        UserPrincipal principalA = UserPrincipal.create(adminA);
+        FollowUp followUpB = followUpRepository.save(new FollowUp(
+                UUID.randomUUID(), orgB, leadB, adminB, java.time.Instant.now(), FollowUpStatus.PENDING, LeadPriority.MEDIUM, "Org B task"
+        ));
+
+        mockMvc.perform(patch("/api/v1/follow-ups/" + followUpB.getId() + "/complete")
+                        .with(user(principalA))
+                        .with(CsrfTestUtils.csrfToken()))
+                .andExpect(status().isBadRequest());
+    }
 }
