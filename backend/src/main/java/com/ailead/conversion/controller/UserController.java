@@ -24,4 +24,9 @@ public class UserController {
         UserResponse response = userService.getCurrentUser(principal);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping
+    public ResponseEntity<java.util.List<UserResponse>> getOrganizationUsers(@AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(userService.getOrganizationUsers(principal));
+    }
 }

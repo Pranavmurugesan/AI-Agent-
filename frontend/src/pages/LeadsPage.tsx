@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiService } from '../services/api';
 import { Lead, Course, LeadCreateRequest, LeadStatus, LeadSource, LeadPriority } from '../types/lead';
+import { User } from '../types/api';
 import { 
   Users, 
   Plus, 
@@ -12,16 +13,19 @@ import {
   Phone, 
   Mail, 
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  UserCheck
 } from 'lucide-react';
 
 interface LeadsPageProps {
   onSelectLead: (leadId: string) => void;
+  currentUser?: User | null;
 }
 
-export const LeadsPage: React.FC<LeadsPageProps> = ({ onSelectLead }) => {
+export const LeadsPage: React.FC<LeadsPageProps> = ({ onSelectLead, currentUser }) => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [counselors, setCounselors] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,6 +33,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({ onSelectLead }) => {
   const [search, setSearch] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<LeadStatus | 'ALL'>('ALL');
   const [courseFilter, setCourseFilter] = useState<string>('');
+  const [counselorFilter, setCounselorFilter] = useState<string>('');
   const [page, setPage] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalElements, setTotalElements] = useState<number>(0);
@@ -41,6 +46,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({ onSelectLead }) => {
     phone: '',
     email: '',
     courseId: '',
+    assignedToUserId: '',
     source: 'WEBSITE',
     priority: 'MEDIUM',
     notes: '',
@@ -54,6 +60,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({ onSelectLead }) => {
         search: search.trim() || undefined,
         status: statusFilter === 'ALL' ? undefined : statusFilter,
         courseId: courseFilter || undefined,
+        assignedToId: counselorFilter || undefined,
         page,
         size: 15,
       });
@@ -67,22 +74,31 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({ onSelectLead }) => {
     }
   };
 
-  const fetchCourses = async () => {
+  const fetchMetadata = async () => {
     try {
-      const data = await apiService.getCourses(false);
-      setCourses(data);
+      const [coursesData, usersData] = await Promise.allSettled([
+        apiService.getCourses(false),
+        apiService.getUsers(),
+      ]);
+
+      if (coursesData.status === 'fulfilled') {
+        setCourses(coursesData.value);
+      }
+      if (usersData.status === 'fulfilled') {
+        setCounselors(usersData.value);
+      }
     } catch {
       // Ignored
     }
   };
 
   useEffect(() => {
-    fetchCourses();
+    fetchMetadata();
   }, []);
 
   useEffect(() => {
     fetchLeads();
-  }, [page, statusFilter, courseFilter]);
+  }, [page, statusFilter, courseFilter, counselorFilter]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,6 +117,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({ onSelectLead }) => {
         phone: formData.phone.trim(),
         email: formData.email?.trim() || undefined,
         courseId: formData.courseId || undefined,
+        assignedToUserId: formData.assignedToUserId || undefined,
         source: formData.source,
         priority: formData.priority,
         notes: formData.notes?.trim() || undefined,
@@ -111,6 +128,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({ onSelectLead }) => {
         phone: '',
         email: '',
         courseId: '',
+        assignedToUserId: '',
         source: 'WEBSITE',
         priority: 'MEDIUM',
         notes: '',
@@ -198,24 +216,45 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({ onSelectLead }) => {
             </button>
           ))}
 
-          {courses.length > 0 && (
-            <div className="ml-auto flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-slate-400">Course:</span>
-              <select
-                value={courseFilter}
-                onChange={(e) => {
-                  setCourseFilter(e.target.value);
-                  setPage(0);
-                }}
-                className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-[11px] text-slate-300 focus:outline-none focus:border-blue-500"
-              >
-                <option value="">All Courses</option>
-                {courses.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
+          <div className="ml-auto flex flex-wrap items-center gap-3">
+            {courses.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-semibold text-slate-400">Course:</span>
+                <select
+                  value={courseFilter}
+                  onChange={(e) => {
+                    setCourseFilter(e.target.value);
+                    setPage(0);
+                  }}
+                  className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-[11px] text-slate-300 focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">All Courses</option>
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {counselors.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-semibold text-slate-400">Counselor:</span>
+                <select
+                  value={counselorFilter}
+                  onChange={(e) => {
+                    setCounselorFilter(e.target.value);
+                    setPage(0);
+                  }}
+                  className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-[11px] text-slate-300 focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">All Counselors</option>
+                  {counselors.map((u) => (
+                    <option key={u.id} value={u.id}>{u.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -296,7 +335,14 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({ onSelectLead }) => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-slate-300">
-                      {lead.assignedTo ? lead.assignedTo.name : <span className="text-slate-500">Unassigned</span>}
+                      {lead.assignedTo ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-slate-200">
+                          <UserCheck className="w-3 h-3 text-blue-400" />
+                          {lead.assignedTo.name}
+                        </span>
+                      ) : (
+                        <span className="text-slate-500 italic">Unassigned</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -306,13 +352,15 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({ onSelectLead }) => {
                         >
                           View Details
                         </button>
-                        <button
-                          onClick={() => handleDeleteLead(lead.id, lead.name)}
-                          title="Soft delete lead"
-                          className="p-1 text-slate-500 hover:text-rose-400 transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {currentUser?.role === 'ADMIN' && (
+                          <button
+                            onClick={() => handleDeleteLead(lead.id, lead.name)}
+                            title="Soft delete lead"
+                            className="p-1 text-slate-500 hover:text-rose-400 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -403,7 +451,7 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({ onSelectLead }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-slate-400 font-medium mb-1">Lead Source</label>
                   <select
@@ -432,6 +480,19 @@ export const LeadsPage: React.FC<LeadsPageProps> = ({ onSelectLead }) => {
                     <option value="MEDIUM">Medium</option>
                     <option value="HIGH">High</option>
                     <option value="URGENT">Urgent</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-400 font-medium mb-1">Assign Counselor</label>
+                  <select
+                    value={formData.assignedToUserId || ''}
+                    onChange={(e) => setFormData({ ...formData, assignedToUserId: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="">Auto / Unassigned</option>
+                    {counselors.map((u) => (
+                      <option key={u.id} value={u.id}>{u.name}</option>
+                    ))}
                   </select>
                 </div>
               </div>
