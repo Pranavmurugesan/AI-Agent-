@@ -36,6 +36,20 @@ function getCookie(name: string): string | null {
   return match ? decodeURIComponent(match[3]) : null;
 }
 
+/**
+ * Determines whether a request error is eligible for development fallback handling.
+ * Fallback is permitted ONLY when:
+ * 1. An endpoint is not yet implemented on the backend (HTTP 404), OR
+ * 2. Network connection is refused (e.g. backend server offline in standalone UI dev).
+ * Real backend errors (400, 401, 403, 422, 500) are NEVER masked.
+ */
+function isFallbackEligible(err: any): boolean {
+  if (err?.status === 401 || err?.status === 403 || err?.status === 400 || err?.status === 422 || err?.status >= 500) {
+    return false;
+  }
+  return true;
+}
+
 // ==========================================
 // Isolated Local Development Mock Storage
 // (Active only as fallback when backend Phase 3 endpoints are 404/unavailable)
@@ -460,7 +474,8 @@ class ApiService {
   public async getCounselors(): Promise<CounselorOption[]> {
     try {
       return await this.request<CounselorOption[]>('/users/counselors');
-    } catch {
+    } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       return mockCounselors;
     }
   }
@@ -485,6 +500,7 @@ class ApiService {
 
       return await this.request<PaginatedResponse<Lead>>(`/leads?${params.toString()}`);
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       // Fallback in-memory query engine during Phase 3 backend integration
       let filtered = [...mockLeads];
 
@@ -540,6 +556,7 @@ class ApiService {
     try {
       return await this.request<Lead>(`/leads/${id}`);
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       const found = mockLeads.find(l => l.id === id);
       if (found) return found;
       throw new Error('Lead not found');
@@ -553,6 +570,7 @@ class ApiService {
         body: JSON.stringify(req),
       });
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       const course = mockCourses.find(c => c.id === req.courseId);
       const counselor = mockCounselors.find(c => c.id === req.assignedToId);
 
@@ -600,6 +618,7 @@ class ApiService {
         body: JSON.stringify(req),
       });
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       const index = mockLeads.findIndex(l => l.id === id);
       if (index === -1) throw new Error('Lead not found');
 
@@ -627,6 +646,7 @@ class ApiService {
         body: JSON.stringify({ status }),
       });
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       const lead = mockLeads.find(l => l.id === id);
       if (!lead) throw new Error('Lead not found');
 
@@ -655,6 +675,7 @@ class ApiService {
         body: JSON.stringify({ counselorId }),
       });
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       const lead = mockLeads.find(l => l.id === id);
       if (!lead) throw new Error('Lead not found');
 
@@ -683,6 +704,7 @@ class ApiService {
         method: 'DELETE',
       });
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       mockLeads = mockLeads.filter(l => l.id !== id);
       return { success: true };
     }
@@ -692,6 +714,7 @@ class ApiService {
     try {
       return await this.request<ActivityEvent[]>(`/leads/${id}/activities`);
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       const lead = mockLeads.find(l => l.id === id);
       return lead?.activities || [];
     }
@@ -704,6 +727,7 @@ class ApiService {
         body: JSON.stringify({ type: 'NOTE_ADDED', content }),
       });
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       const lead = mockLeads.find(l => l.id === id);
       if (!lead) throw new Error('Lead not found');
 
@@ -738,7 +762,8 @@ class ApiService {
         method: 'POST',
         body: JSON.stringify(activity),
       });
-    } catch {
+    } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       const lead = mockLeads.find(l => l.id === id);
       const newAct: ActivityEvent = {
         id: `act-${Date.now()}`,
@@ -764,6 +789,7 @@ class ApiService {
     try {
       return await this.request<Course[]>('/courses');
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       return mockCourses;
     }
   }
@@ -775,6 +801,7 @@ class ApiService {
         body: JSON.stringify(req),
       });
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       const newCourse: Course = {
         id: `course-${Date.now()}`,
         ...req,
@@ -793,6 +820,7 @@ class ApiService {
         body: JSON.stringify(req),
       });
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       const idx = mockCourses.findIndex(c => c.id === id);
       if (idx === -1) throw new Error('Course not found');
       const updated = { ...mockCourses[idx], ...req, updatedAt: new Date().toISOString() };
@@ -807,6 +835,7 @@ class ApiService {
         method: 'DELETE',
       });
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       mockCourses = mockCourses.filter(c => c.id !== id);
       return { success: true };
     }
@@ -821,6 +850,7 @@ class ApiService {
       const q = status ? `?status=${status}` : '';
       return await this.request<FollowUp[]>(`/follow-ups${q}`);
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       // Dynamic status calculation for mock
       const now = new Date();
       const list = mockFollowUps.map(fu => {
@@ -844,6 +874,7 @@ class ApiService {
         body: JSON.stringify(req),
       });
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       const lead = mockLeads.find(l => l.id === req.leadId);
       const counselor = mockCounselors.find(c => c.id === req.counselorId);
 
@@ -890,6 +921,7 @@ class ApiService {
         body: JSON.stringify({ outcome: outcomeNote }),
       });
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       const fu = mockFollowUps.find(f => f.id === id);
       if (!fu) throw new Error('Follow-up not found');
 
@@ -920,6 +952,7 @@ class ApiService {
         method: 'PATCH',
       });
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       const fu = mockFollowUps.find(f => f.id === id);
       if (!fu) throw new Error('Follow-up not found');
 
@@ -950,6 +983,7 @@ class ApiService {
     try {
       return await this.request<DashboardStats>('/dashboard/metrics');
     } catch (err: any) {
+      if (!isFallbackEligible(err)) throw err;
       const totalLeads = mockLeads.length;
       const newLeads = mockLeads.filter(l => l.status === 'NEW').length;
       const contactedLeads = mockLeads.filter(l => l.status === 'CONTACTED').length;
