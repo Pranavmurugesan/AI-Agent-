@@ -732,6 +732,30 @@ class ApiService {
     }
   }
 
+  public async addLeadActivity(id: string, activity: { type: string; title?: string; description?: string; content?: string }): Promise<ActivityEvent> {
+    try {
+      return await this.request<ActivityEvent>(`/leads/${id}/activities`, {
+        method: 'POST',
+        body: JSON.stringify(activity),
+      });
+    } catch {
+      const lead = mockLeads.find(l => l.id === id);
+      const newAct: ActivityEvent = {
+        id: `act-${Date.now()}`,
+        leadId: id,
+        type: (activity.type as any) || 'NOTE_ADDED',
+        title: activity.title || 'Activity Logged',
+        description: activity.description || activity.content || '',
+        createdAt: new Date().toISOString(),
+      };
+      if (lead) {
+        if (!lead.activities) lead.activities = [];
+        lead.activities.unshift(newAct);
+      }
+      return newAct;
+    }
+  }
+
   // ==========================================
   // COURSES MANAGEMENT METHODS
   // ==========================================
