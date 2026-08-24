@@ -1,97 +1,125 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { AuthProvider, useAuthContext } from './context/AuthContext';
 import { DashboardLayout } from './layouts/DashboardLayout';
-import { AppPage } from './components/Sidebar';
 import { DashboardPage } from './pages/DashboardPage';
 import { LeadsPage } from './pages/LeadsPage';
-import { LeadDetailPage } from './pages/LeadDetailPage';
 import { CoursesPage } from './pages/CoursesPage';
 import { FollowUpsPage } from './pages/FollowUpsPage';
+import { AuthModal } from './components/auth/AuthModal';
+import { LeadModal } from './components/leads/LeadModal';
+import { AppView } from './components/Sidebar';
 import { apiService } from './services/api';
-import { User, Organization } from './types/api';
+import { Course, CounselorOption, CreateLeadRequest } from './types/leads';
 
-export const App: React.FC = () => {
-  const [activePage, setActivePage] = useState<AppPage>('dashboard');
+const MainAppContent: React.FC = () => {
+  const { isAuthenticated, isLoading } = useAuthContext();
+
+  const [currentView, setCurrentView] = useState<AppView>('dashboard');
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
-  const [authKey, setAuthKey] = useState<number>(0);
+  // Global modals
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isQuickLeadModalOpen, setIsQuickLeadModalOpen] = useState(false);
 
-  const fetchSession = async () => {
+  // Cached meta for quick lead modal
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [counselors, setCounselors] = useState<CounselorOption[]>([]);
+
+  const handleOpenQuickLead = async () => {
     try {
-      const [user, org] = await Promise.all([
-        apiService.getCurrentUser(),
-        apiService.getCurrentOrganization(),
+      const [cList, coList] = await Promise.all([
+        apiService.getCourses(),
+        apiService.getCounselors(),
       ]);
-      setCurrentUser(user);
-      setCurrentOrg(org);
+      setCourses(cList);
+      setCounselors(coList);
     } catch {
-      setCurrentUser(null);
-      setCurrentOrg(null);
+      // Fallback in service
     }
+    setIsQuickLeadModalOpen(true);
   };
 
-  useEffect(() => {
-    fetchSession();
-  }, [authKey]);
-
-  const handleAuthChange = () => {
-    setAuthKey((prev) => prev + 1);
+  const handleQuickLeadSubmit = async (data: CreateLeadRequest) => {
+    await apiService.createLead(data);
+    setIsQuickLeadModalOpen(false);
+    // Navigate to leads view to see new lead
+    setCurrentView('leads');
   };
 
-  const handleSelectLead = (leadId: string) => {
+  const handleSelectLeadFromAnywhere = (leadId: string) => {
     setSelectedLeadId(leadId);
-    setActivePage('lead-detail');
+    setCurrentView('leads');
   };
 
-  const handleBackToLeads = () => {
-    setSelectedLeadId(null);
-    setActivePage('leads');
+  const handleNavigate = (view: AppView) => {
+    if (view === 'leads') {
+      setSelectedLeadId(null);
+    }
+    setCurrentView(view);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center space-y-4">
+        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs text-slate-400 font-mono">Initializing Institute Session...</p>
+      </div>
+    );
+  }
 
   return (
-    <DashboardLayout 
-      activePage={activePage} 
-      onNavigate={setActivePage}
-      currentUser={currentUser}
-      currentOrg={currentOrg}
-      onAuthChange={handleAuthChange}
+    <DashboardLayout
+      currentView={currentView}
+      onNavigate={handleNavigate}
+      onOpenQuickLead={handleOpenQuickLead}
+      onOpenAuthModal={() => setIsAuthModalOpen(true)}
     >
-      {activePage === 'dashboard' && (
+      {/* Route Views */}
+      {currentView === 'dashboard' && (
         <DashboardPage
-          key={`dashboard-${authKey}`}
-          onNavigateLeads={() => setActivePage('leads')}
-          onNavigateFollowUps={() => setActivePage('follow-ups')}
+          onNavigate={handleNavigate}
+          onSelectLead={handleSelectLeadFromAnywhere}
+          onOpenQuickLead={handleOpenQuickLead}
         />
       )}
-      {activePage === 'leads' && (
-        <LeadsPage 
-          key={`leads-${authKey}`}
-          onSelectLead={handleSelectLead} 
-          currentUser={currentUser}
+
+      {currentView === 'leads' && (
+        <LeadsPage
+          selectedLeadId={selectedLeadId}
+          onSelectLeadId={setSelectedLeadId}
         />
       )}
-      {activePage === 'lead-detail' && selectedLeadId && (
-        <LeadDetailPage 
-          key={`lead-detail-${selectedLeadId}-${authKey}`}
-          leadId={selectedLeadId} 
-          onBack={handleBackToLeads} 
-          currentUser={currentUser}
-        />
+
+      {currentView === 'follow-ups' && (
+        <FollowUpsPage onSelectLead={handleSelectLeadFromAnywhere} />
       )}
-      {activePage === 'courses' && (
-        <CoursesPage 
-          key={`courses-${authKey}`}
-          currentUser={currentUser}
-        />
+
+      {currentView === 'courses' && (
+        <CoursesPage />
       )}
-      {activePage === 'follow-ups' && (
-        <FollowUpsPage 
-          key={`follow-ups-${authKey}`}
-          currentUser={currentUser}
-        />
-      )}
+
+      {/* Global Modals */}
+      <AuthModal
+        isOpen={isAuthModalOpen || (!isAuthenticated && false)}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+
+      <LeadModal
+        isOpen={isQuickLeadModalOpen}
+        courses={courses}
+        counselors={counselors}
+        onClose={() => setIsQuickLeadModalOpen(false)}
+        onSubmit={handleQuickLeadSubmit as any}
+      />
     </DashboardLayout>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <MainAppContent />
+    </AuthProvider>
   );
 };
 
